@@ -41,19 +41,33 @@ add_definitions(-DXPLM200=1 -DXPLM210=1)
 add_library(xplanemp
 	${XPMP_PLATFORM_SOURCES}
 	src/BitmapUtils.cpp
+	src/BitmapUtils.h
 	src/TexUtils.cpp
+	src/TexUtils.h
 	src/XObjDefs.cpp
+	src/XObjDefs.h
 	src/XObjReadWrite.cpp
+	src/XObjReadWrite.h
 	src/XOGLUtils.cpp
+	src/XOGLUtils.h
 	src/XPCAircraft.cpp
+	include/XPCAircraft.h
 	src/XPMPMultiplayer.cpp
+	include/XPMPMultiplayer.h
 	src/XPMPMultiplayerCSL.cpp
+	src/XPMPMultiplayerCSL.h
 	src/XPMPMultiplayerCSLOffset.cpp
+	src/XPMPMultiplayerCSLOffset.h
 	src/XPMPMultiplayerObj8.cpp
+	src/XPMPMultiplayerObj8.h
 	src/XPMPMultiplayerObj.cpp
+	src/XPMPMultiplayerObj.h
 	src/XPMPMultiplayerVars.cpp
+	src/XPMPMultiplayerVars.h
 	src/XPMPPlaneRenderer.cpp
+	include/XPMPPlaneRenderer.h
 	src/XUtils.cpp
+	src/XUtils.h
 	src/XStringUtils.h
 	src/ResourceManager.h
 	src/Interpolation.h)

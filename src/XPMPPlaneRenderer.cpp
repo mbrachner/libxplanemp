@@ -244,13 +244,19 @@ void XPMPDeinitDefaultPlaneRenderer() {
 	XPLMDestroyProbe(terrainProbe);
 }
 
-double getCorrectYValue(double inX, double inY, double inZ, double inModelYOffset, bool inIsClampingOn) {
-	if (!inIsClampingOn) {
-		return inY;
-	}
+/* correctYValue returns the clamped Z value given the input X, Y and Z and the
+ * known vertical offset of the aircraft model.
+*/
+double
+correctYValue(double inX, double inY, double inZ, double inModelYOffset)
+{
 	XPLMProbeInfo_t info;
 	info.structSize = sizeof(XPLMProbeInfo_t);
-	XPLMProbeResult res = XPLMProbeTerrainXYZ(terrainProbe, inX, inY, inZ, &info);
+	XPLMProbeResult res = XPLMProbeTerrainXYZ(terrainProbe,
+		static_cast<float>(inX),
+		static_cast<float>(inY),
+		static_cast<float>(inZ),
+		&info);
 	if (res != xplm_ProbeHitTerrain) {
 		return inY;
 	}
@@ -500,11 +506,13 @@ void			XPMPDefaultPlaneRenderer(int is_blend)
 
 			if (iter->second.plane->model)
 			{
-				//find or update the actual vert offset in the csl model data
-				cslVertOffsetCalc.findOrUpdateActualVertOffset(*iter->second.plane->model);
-				//correct y value by real terrain elevation
-				bool isClampingOn = (gIntPrefsFunc("PREFERENCES", "CLAMPING", true > 0) ? true : false);
-				iter->second.y = getCorrectYValue(iter->second.x, iter->second.y, iter->second.z, iter->second.plane->model->actualVertOffset, isClampingOn);
+				if (iter->second.plane->pos.clampToGround || (gIntPrefsFunc("planes", "clamp_all_to_ground", 0) != 0)) {
+					//correct y value by real terrain elevation
+					//find or update the actual vert offset in the csl model data
+					cslVertOffsetCalc.findOrUpdateActualVertOffset(*iter->second.plane->model);
+					iter->second.y = correctYValue(
+						iter->second.x, iter->second.y, iter->second.z, iter->second.plane->model->actualVertOffset);
+				}
 				if (iter->second.plane->model->plane_type == plane_Austin)
 				{
 					planes_austin.insert(multimap<int, PlaneToRender_t *>::value_type(CSL_GetOGLIndex(iter->second.plane->model), &iter->second));

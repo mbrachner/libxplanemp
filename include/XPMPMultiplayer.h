@@ -90,7 +90,8 @@ typedef	struct {
 	float	pitch;
 	float	roll;
 	float	heading;
-	char label[32];
+	char 	label[32];
+	bool 	clampToGround;
 } XPMPPlanePosition_t;
 
 

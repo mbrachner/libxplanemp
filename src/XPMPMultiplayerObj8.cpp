@@ -335,7 +335,7 @@ void	obj_schedule_one_aircraft(
 		if(obj8->handle == NULL && obj8->load_state == load_none && !obj8->file.empty()) {
 #ifdef DEBUG
 			XPLMDebugString(XPMP_CLIENT_NAME ": Loading Model ");
-			XPLMDebugString(model->file.c_str());
+			XPLMDebugString(obj8->file.c_str());
 			XPLMDebugString("\n");
 #endif			
 			prepareObj8ForUsingWithAnotherTexture(model, obj8);

@@ -204,18 +204,33 @@ bool LoadImageFromFile(const std::string &inFileName, bool magentaAlpha, int inD
    basically a BSF (x86) - find the lowest bit set - this is so we can reverse it to do
    a Non-power-of-two check 
  */
-#ifdef _MSC_VER
+inline int
+purec_find_first_bit_set(unsigned int x)
+{
+	int r = -1;
+	for (unsigned i = 0; i < sizeof(x)*8; i++) {
+		if ((1<<(i)) & x) {
+			r = i;
+		}
+	}
+	return r;
+}
+
+#if defined(_MSC_VER)
+	#if _MSC_VER >= 1900
+		#include <intrin.h>
+
 inline int
 find_first_bit_set(unsigned int x)
 {
-	__asm {
-		mov eax, 0
-		bsf	eax, x
-	}
-	// returns eax
+	DWORD rv = -1;
+	_BitScanForward(&rv, static_cast<DWORD>(x));
+	return rv;
 }
-#else
-#ifdef __GNUC__
+	#else
+		#define find_first_bit_set(x) purec_find_first_bit_set(x)
+	#endif
+#elif defined(__GNUC__)
 inline int
 find_first_bit_set(unsigned int x)
 {
@@ -228,18 +243,7 @@ find_first_bit_set(unsigned int x)
 	return r;
 }
 #else
-inline int
-find_first_bit_set(unsigned int x)
-{
-	int r = -1;
-	for (unsigned i = 0; i < sizeof(x)*8; i++) {
-		if ((1<<(i)) & x) {
-			r = i;
-		}
-	}
-	return r;
-}
-#endif
+	#define find_first_bit_set(x) purec_find_first_bit_set(x)
 #endif
 
 /*

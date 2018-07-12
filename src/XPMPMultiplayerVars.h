@@ -149,10 +149,6 @@ struct	CSLPlane_t {
 	bool isXsbVertOffsetUpToDate = false;
 	bool isXsbVertOffsetAvail = false;
 	double xsbVertOffset = 0.0;
-	// vert offset from mtl file
-	bool isMtlVertOffsetUpToDate = false;
-	bool isMtlVertOffsetAvail = false;
-	double mtlVertOffset = 0.0;
 	// calculated vert offset
 	bool isCalcVertOffsetUpToDate = false;
 	bool isCalcVertOffsetAvail = false;
