@@ -304,7 +304,6 @@ void XPMPMultiplayerCleanup(void)
 	XPLMUnregisterDrawCallback(XPMPControlPlaneCount, xplm_Phase_Gauges, 1, (void *) -1);
 	XPLMUnregisterDrawCallback(XPMPRenderMultiplayerPlanes, xplm_Phase_Airplanes, 0, 0);
 	XPMPDeinitDefaultPlaneRenderer();
-	CSL_DeInit();
 	OGLDEBUG(glDebugMessageCallback(NULL, NULL));
 }
 

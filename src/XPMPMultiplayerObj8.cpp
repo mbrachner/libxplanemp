@@ -172,19 +172,6 @@ void	obj_init()
 	}
 }
 
-static std::set<std::string> gCopyiedObj8Cache;
-
-void obj_deinit() {
-	for (const auto &fileName : gCopyiedObj8Cache) {
-		char xsystem[1024];
-		XPLMGetSystemPath(xsystem);
-		std::string fullPath = std::string(xsystem) + fileName;
-		int res = std::remove(fullPath.c_str());
-		if (res) {
-			XPLMDebugString(std::string(XPMP_CLIENT_NAME" Warning: Can't delete temporary created obj8 file. The file: " + fullPath + "\n").c_str());
-		}
-	}
-}
 
 
 static void		draw_objects_for_mode(one_obj * who, int want_translucent)
@@ -231,89 +218,6 @@ void obj_loaded_cb(XPLMObjectRef obj, void * refcon)
 	}
 } 
 
-void prepareObj8ForUsingWithAnotherTexture(CSLPlane_t * model, obj_for_acf * obj8) {
-	// generate the name for new object
-	std::string destObjFile = obj8->file;
-	string::size_type pos2 = destObjFile.find_last_of(".");
-	if (pos2 != string::npos) {
-		destObjFile.insert(pos2, "_" + model->getModelName());
-	}
-	else {
-		destObjFile += std::string("_" + model->getModelName());
-	}
-
-	// trying to find an object in cache
-	const auto &findRes = gCopyiedObj8Cache.find(destObjFile);
-	if (findRes != gCopyiedObj8Cache.end()) {
-		obj8->file = destObjFile;
-		XPLMDebugString(std::string(XPMP_CLIENT_NAME": Modified obj8 has been found in the cache: " + obj8->file + "\n").c_str());
-		return;
-	}
-	// copy and edit new object
-	if (!obj8->textureFile.empty()) {
-		std::ifstream srcObj(obj8->file.c_str(), std::ios_base::in);
-		if (!srcObj.is_open()) {
-			XPLMDebugString(std::string(XPMP_CLIENT_NAME" Warning: Can't open the source obj8 file during copying and modifying: " + obj8->file + "\n").c_str());
-			return;
-		}
-
-		std::ofstream destObj(destObjFile, std::ios_base::out);
-		if (!srcObj.is_open()) {
-			XPLMDebugString(std::string(XPMP_CLIENT_NAME" Warning: Can't open the destination obj8 file during copying and modifying: " + destObjFile + "\n").c_str());
-			return;
-		}
-		bool textureHasWritten = false;
-		bool litTextureHasWritten = false;
-		while (srcObj.good()) {
-			std::string line;
-			std::getline(srcObj, line);
-			if (!textureHasWritten || !litTextureHasWritten) {
-				std::string trimmedLine = xmp::trim(line);
-				std::vector<std::string> tokens;
-				tokens = xmp::explode(trimmedLine);
-				if (tokens.size() >= 2 && xmp::trim(tokens[0]) == "TEXTURE") {
-					std::ostringstream os;
-					os << "TEXTURE " << obj8->textureFile;
-					line = os.str();
-					textureHasWritten = true;
-				}
-				if (tokens.size() >= 2 && xmp::trim(tokens[0]) == "TEXTURE_LIT") {
-					std::ostringstream os;
-					os << "TEXTURE_LIT " << obj8->litTextureFile;
-					line = os.str();
-					litTextureHasWritten = true;
-				}
-				if (tokens.size() >= 2
-					&& (xmp::trim(tokens[0]) == "VT"
-						|| xmp::trim(tokens[0]) == "VLINE"
-						|| xmp::trim(tokens[0]) == "VLIGHT"
-						|| xmp::trim(tokens[0]) == "IDX"
-						|| xmp::trim(tokens[0]) == "IDX10")
-					) {
-
-					if (!textureHasWritten) {
-						std::ostringstream os;
-						os << "TEXTURE " << obj8->textureFile;
-						destObj << os.str() << std::endl;
-						textureHasWritten = true;
-					}
-					if (!litTextureHasWritten) {
-						std::ostringstream os;
-						os << "TEXTURE_LIT " << obj8->litTextureFile;
-						destObj << os.str() << std::endl;
-						litTextureHasWritten = true;
-					}
-				}
-			}
-			destObj << line << std::endl;
-		}
-		obj8->file = destObjFile;
-		gCopyiedObj8Cache.emplace(destObjFile);
-		XPLMDebugString(std::string(XPMP_CLIENT_NAME": Modified obj8 has been created at: " + obj8->file + "\n").c_str());
-	}
-}
-
-
 void	obj_schedule_one_aircraft(
 		CSLPlane_t *			model,
 		double 					x,
@@ -338,7 +242,6 @@ void	obj_schedule_one_aircraft(
 			XPLMDebugString(obj8->file.c_str());
 			XPLMDebugString("\n");
 #endif			
-			prepareObj8ForUsingWithAnotherTexture(model, obj8);
 			if(obj8_load_async) {
 				XPLMLoadObjectAsync(obj8->file.c_str(),obj_loaded_cb,reinterpret_cast<void *>(obj8));
 				obj8->load_state = load_loading;
