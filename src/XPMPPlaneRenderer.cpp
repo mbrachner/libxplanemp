@@ -546,6 +546,11 @@ void			XPMPDefaultPlaneRenderer(int is_blend)
 
 			if (iter->second.plane->model)
 			{
+				// always check for the offset since we need it in multiple places.
+				cslVertOffsetCalc.findOrUpdateActualVertOffset(*iter->second.plane->model);
+				if (iter->second.plane->pos.offsetScale > 0.0f) {
+					iter->second.y += iter->second.plane->pos.offsetScale * iter->second.plane->model->actualVertOffset;
+				}
 				if (iter->second.plane->pos.clampToGround || (gIntPrefsFunc("planes", "clamp_all_to_ground", 0) != 0)) {
 					//correct y value by real terrain elevation
 					//find or update the actual vert offset in the csl model data

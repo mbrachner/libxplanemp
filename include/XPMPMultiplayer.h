@@ -78,9 +78,16 @@ extern "C" {
  * is clockwise from north.  Pitch is the number of degrees, positive is nose up, and roll
  * is positive equals roll right.
  *
+ * Offset scale should be between 0 & 1 and indicates how much of the surface
+ * contact correction offset should be applied.  1 is fully corrected, 0 is no
+ * correction.  This is so XSB can blend the correction out as the aircraft
+ * leaves circling altitude.
+ *
+ * clampToGround enables the ground-clamping inside of libxplanemp.  If false,
+ * libxplanemp will not clamp this particular aircraft.
+ *
  * Note that there is no notion of aircraft velocity or acceleration; you will be queried for
  * your position every rendering frame.  Higher level APIs can use velocity and acceleration.
- *
  */
 typedef	struct {
 	long	size;
