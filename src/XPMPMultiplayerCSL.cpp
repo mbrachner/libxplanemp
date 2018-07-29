@@ -525,18 +525,15 @@ bool ParseObj8Command(const std::vector<std::string> &tokens, CSLPackage_t &pack
 
 	att.load_state = load_none;
 
-	if(tokens[1] == "GLASS")
-		att.draw_type = draw_glass;
-	else if(tokens[1] == "LIGHTS")
+
+	if(tokens[1] == "LIGHTS")
 		att.draw_type = draw_lights;
-	else if(tokens[1] == "LOW_LOD")
-		att.draw_type = draw_low_lod;
-	else if(tokens[1] == "SOLID")
+	if(tokens[1] == "SOLID")
 		att.draw_type = draw_solid;
 	else {
 		// err crap enum
+		XPLMDump(path, lineNum, line) << XPMP_CLIENT_NAME " WARNING: valid OBJ8 part types are LIGHTS or SOLID.  Got " << tokens[1] << ".\n";
 	}
-
 	if(tokens[2] == "YES")
 		att.needs_animation = true;
 	else if(tokens[2] == "NO")
