@@ -414,6 +414,10 @@ const char * 	XPMPLoadCSLPackage(
 // This routine checks plane loading and grabs anyone we're missing.
 void	XPMPLoadPlanesIfNecessary(void)
 {
+	// if we do not control the MP system, we can not do this.
+	if (!gHasControlOfAIAircraft) {
+		return;
+	}
 	int	active, models;
 	XPLMPluginID	owner;
 	XPLMCountAircraft(&models, &active, &owner);
