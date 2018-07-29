@@ -98,6 +98,7 @@ typedef	struct {
 	float	roll;
 	float	heading;
 	char 	label[32];
+	float 	offsetScale;
 	bool 	clampToGround;
 } XPMPPlanePosition_t;
 
