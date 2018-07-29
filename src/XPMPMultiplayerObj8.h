@@ -42,10 +42,7 @@
 enum obj_draw_type {
 
 	draw_lights = 0,
-	draw_low_lod,
 	draw_solid,
-	draw_glass
-
 };
 
 enum obj_load_state {
@@ -90,7 +87,6 @@ void	obj_schedule_one_aircraft(
 
 
 void	obj_draw_solid();
-void	obj_draw_translucent();
 void	obj_draw_done();
 
 

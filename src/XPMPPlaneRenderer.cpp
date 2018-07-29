@@ -65,6 +65,7 @@
 // that we can barely see.  Cut labels at 5 km.
 #define		MAX_LABEL_DIST			5000.0
 
+extern bool	gHasControlOfAIAircraft;
 
 std::vector<XPLMDataRef>			gMultiRef_X;
 std::vector<XPLMDataRef>			gMultiRef_Y;
@@ -582,7 +583,7 @@ void			XPMPDefaultPlaneRenderer(int is_blend)
 		}
 
 		// TCAS handling - if the plane needs to be drawn on TCAS and we haven't yet, move one of Austin's planes.
-		if (iter->second.tcas && renderedCounter < gMultiRef_X.size())
+		if (iter->second.tcas && renderedCounter < gMultiRef_X.size() && gHasControlOfAIAircraft)
 		{
 			XPLMSetDataf(gMultiRef_X[renderedCounter], iter->second.x);
 			XPLMSetDataf(gMultiRef_Y[renderedCounter], iter->second.y);
@@ -592,8 +593,7 @@ void			XPMPDefaultPlaneRenderer(int is_blend)
 	}
 	
 	// PASS 1 - draw Austin's planes.
-
-	if(!is_blend)
+	if(gHasControlOfAIAircraft && !is_blend)
 		for (planeMapIter = planes_austin.begin(); planeMapIter != planes_austin.end(); ++planeMapIter)
 		{
 			CSL_DrawObject(	planeMapIter->second->plane,
@@ -685,8 +685,6 @@ void			XPMPDefaultPlaneRenderer(int is_blend)
 			}
 		}
 	
-	if(is_blend)
-		obj_draw_translucent();
 	obj_draw_done();
 	
 	// PASS 4 - Labels

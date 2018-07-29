@@ -172,35 +172,10 @@ void	obj_init()
 	}
 }
 
-
-
-static void		draw_objects_for_mode(one_obj * who, int want_translucent)
-{
-	while(who)
-	{
-		obj_draw_type dt = who->model->draw_type;
-		if((want_translucent && dt == draw_glass) ||
-				(!want_translucent && dt != draw_glass))
-		{
-			static XPLMDataRef night_lighting_ref = XPLMFindDataRef("sim/graphics/scenery/percent_lights_on");
-			bool use_night = XPLMGetDataf(night_lighting_ref) > 0.25;
-
-			for (one_inst * i = who->head; i; i = i->next)
-			{
-				s_cur_plane = i;
-				// TODO: set obj sate to state datarefs(dref_names) from "one_inst".
-				XPLMDrawObjects(who->model->handle, 1, &i->location, use_night, 0);
-			}
-		}
-		who = who->next;
-	}
-	s_cur_plane = NULL;
-}
-
 void obj_loaded_cb(XPLMObjectRef obj, void * refcon)
 {
-	obj_for_acf *model = reinterpret_cast<obj_for_acf *>(refcon);
-	if (obj != NULL) {
+	auto *model = reinterpret_cast<obj_for_acf *>(refcon);
+	if (obj != nullptr) {
 		model->load_state = load_loaded;
 		model->handle = obj;
 #ifdef DEBUG
@@ -236,7 +211,7 @@ void	obj_schedule_one_aircraft(
 	{
 		obj_for_acf * obj8 = &*att;
 
-		if(obj8->handle == NULL && obj8->load_state == load_none && !obj8->file.empty()) {
+		if(obj8->handle == nullptr && obj8->load_state == load_none && !obj8->file.empty()) {
 #ifdef DEBUG
 			XPLMDebugString(XPMP_CLIENT_NAME ": Loading Model ");
 			XPLMDebugString(obj8->file.c_str());
@@ -247,7 +222,7 @@ void	obj_schedule_one_aircraft(
 				obj8->load_state = load_loading;
 			} else {
 				obj8->handle = XPLMLoadObject(obj8->file.c_str());
-				if (obj8->handle != NULL) {
+				if (obj8->handle != nullptr) {
 					obj8->load_state = load_loaded;
 				} else {
 					obj8->load_state = load_failed;
@@ -255,23 +230,22 @@ void	obj_schedule_one_aircraft(
 			}
 		}
 
-
 		for(iter = s_worklist; iter; iter = iter->next)
 		{
 			if(iter->model == obj8)
 				break;
 		}
-		if(iter == NULL)
+		if(iter == nullptr)
 		{
 			iter = new one_obj;
 			iter->next = s_worklist;
 			s_worklist = iter;
 			iter->model = obj8;
-			iter->head = NULL;
+			iter->head = nullptr;
 		}
 		
 		if(iter->model->load_state == load_loaded) {
-			one_inst * i = new one_inst;
+			auto * i = new one_inst;
 			i->next = iter->head;
 			iter->head = i;
 			i->lights = lights;
@@ -289,16 +263,25 @@ void	obj_schedule_one_aircraft(
 
 void	obj_draw_solid()
 {
-	draw_objects_for_mode(s_worklist, false);
-}
+	one_obj *who = s_worklist;
+	while(who)
+	{
+		static XPLMDataRef night_lighting_ref = XPLMFindDataRef("sim/graphics/scenery/percent_lights_on");
+		bool use_night = XPLMGetDataf(night_lighting_ref) > 0.25;
 
-void	obj_draw_translucent()
-{
-	draw_objects_for_mode(s_worklist, true);
+		for (one_inst * i = who->head; i; i = i->next)
+		{
+			s_cur_plane = i;
+			// TODO: set obj sate to state datarefs(dref_names) from "one_inst".
+			XPLMDrawObjects(who->model->handle, 1, &i->location, use_night, 0);
+		}
+		who = who->next;
+	}
+	s_cur_plane = nullptr;
 }
 
 void	obj_draw_done()
 {
 	delete s_worklist;
-	s_worklist = NULL;
+	s_worklist = nullptr;
 }

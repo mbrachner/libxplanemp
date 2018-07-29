@@ -81,8 +81,13 @@
  ******************************************************************************/
 
 
-
-
+/* we can only manipulate the TCAS, etc, if we have control of the AI aircraft
+ *
+ * Non-static because this information is actually needed in the renderer, but
+ * we don't want it known outside of libxplanemp and both this and the renderer's
+ * headers are public!  argh!
+*/
+bool	gHasControlOfAIAircraft = false;
 
 static	XPMPPlanePtr	XPMPPlaneFromID(
 		XPMPPlaneID 		inID,
@@ -300,9 +305,6 @@ const char * 	XPMPMultiplayerInit(
 
 void XPMPMultiplayerCleanup(void)
 {
-	XPLMUnregisterDrawCallback(XPMPControlPlaneCount, xplm_Phase_Gauges, 0, 0);
-	XPLMUnregisterDrawCallback(XPMPControlPlaneCount, xplm_Phase_Gauges, 1, (void *) -1);
-	XPLMUnregisterDrawCallback(XPMPRenderMultiplayerPlanes, xplm_Phase_Airplanes, 0, 0);
 	XPMPDeinitDefaultPlaneRenderer();
 	OGLDEBUG(glDebugMessageCallback(NULL, NULL));
 }
@@ -354,25 +356,46 @@ const  char * XPMPMultiplayerEnable(void)
 	
 	// Attempt to grab multiplayer planes, then analyze.
 	int	result = XPLMAcquirePlanes(&(*ptrs.begin()), NULL, NULL);
-	if (result)
+	if (result) {
+		gHasControlOfAIAircraft = true;
 		XPLMSetActiveAircraftCount(1);
-	else
-		XPLMDebugString("WARNING: " XPMP_CLIENT_LONGNAME " did not acquire multiplayer planes!!\n");
 
-	int	total, 		active;
-	XPLMPluginID	who;
-	
-	XPLMCountAircraft(&total, &active, &who);
-	if (result == 0)
-	{
-		return XPMP_CLIENT_LONGNAME " was not able to start up multiplayer visuals because another plugin is controlling aircraft.";
-	} else
-		return "";
+		int	total, 		active;
+		XPLMPluginID	who;
+
+		XPLMCountAircraft(&total, &active, &who);
+
+		// Register the plane control calls.
+		XPLMRegisterDrawCallback(XPMPControlPlaneCount,
+			xplm_Phase_Gauges, 0, /* after*/ 0 /* hide planes*/);
+
+		XPLMRegisterDrawCallback(XPMPControlPlaneCount,
+			xplm_Phase_Gauges, 1, /* before */ (void *) -1 /* show planes*/);
+	} else {
+		gHasControlOfAIAircraft = false;
+		XPLMDebugString("WARNING: " XPMP_CLIENT_LONGNAME " did not acquire multiplayer planes!!\n");
+		XPLMDebugString("    Without multiplayer plane control, we cannot fake TCAS or render ACF aircraft!\n");
+		XPLMDebugString("    Make sure you remove any plugins that control multiplayer aircraft if you want these features to work\n");
+	}
+
+	// Register the actual drawing func.
+	XPLMRegisterDrawCallback(XPMPRenderMultiplayerPlanes,
+		xplm_Phase_Airplanes, 0, /* after*/ 0 /* refcon */);
+
+	return "";
 }
 
 void XPMPMultiplayerDisable(void)
 {
-	XPLMReleasePlanes();
+	if (gHasControlOfAIAircraft) {
+		XPLMReleasePlanes();
+		gHasControlOfAIAircraft = false;
+
+		XPLMUnregisterDrawCallback(XPMPControlPlaneCount, xplm_Phase_Gauges, 0, 0);
+		XPLMUnregisterDrawCallback(XPMPControlPlaneCount, xplm_Phase_Gauges, 1, (void *) -1);
+	}
+
+	XPLMUnregisterDrawCallback(XPMPRenderMultiplayerPlanes, xplm_Phase_Airplanes, 0, 0);
 }
 
 
@@ -721,6 +744,9 @@ int	XPMPControlPlaneCount(
 		int                  /*inIsBefore*/,
 		void *               inRefcon)
 {
+	if (!gHasControlOfAIAircraft) {
+		return 1;
+	}
 	if (inRefcon == NULL)
 	{
 		XPLMSetActiveAircraftCount(1);
