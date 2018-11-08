@@ -240,7 +240,7 @@ find_first_bit_set(unsigned int x)
 	 	: [out] "=r" (out)
 	 	: [x] "rm" (x) );
 
-	return r;
+	return out;
 }
 #else
 	#define find_first_bit_set(x) purec_find_first_bit_set(x)
