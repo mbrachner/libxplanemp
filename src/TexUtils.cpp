@@ -236,7 +236,7 @@ find_first_bit_set(unsigned int x)
 {
 	unsigned int out = 0;
 
-	asm ("bsfl %[out], %[x]"
+	asm ("bsfl %[x], %[out]"
 	 	: [out] "=r" (out)
 	 	: [x] "rm" (x) );
 
