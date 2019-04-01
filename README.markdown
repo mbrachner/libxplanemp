@@ -15,6 +15,18 @@ git clone https://github.com/kuroneko/libxplanemp
 
 * Make sure you define `XPMP_CLIENT_NAME` and `XPMP_CLIENT_LONGNAME` to
   reflect your client/plugin.
+  
+### Building
+
+The library needs libpng as an external dependency. This can be easily installed by
+using vcpkg. For that, call .\vcpkg install libpng on the command line.
+If you want to compile the 64bit version, don't forget to specify the x64-windows triplet.
+
+There is also a problem with the glext.h header file, which cannot be found. This can be downloaded
+from https://www.khronos.org/registry/OpenGL/index_gl.php
+glext.h needs also the KHR/khrplatform.h header file. Find out in the properties page of the 
+libxplanemp project under VC++ directories / Include directories, to which Windows Kits path is pointing,
+and copy these two files into this directory.
 
 ## License
 ```
